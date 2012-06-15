@@ -1,0 +1,63 @@
+﻿<Window x:Class="MusicQuiz.GUI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:MusicQuiz.GUI"
+        Title="MainWindow" Height="300" Width="525" SizeToContent="Height" WindowStyle="None" ResizeMode="NoResize">
+    <Window.CommandBindings>
+        <CommandBinding Command="Close" Executed="CloseCommandExecuted"/>
+    </Window.CommandBindings>
+    <Window.InputBindings>
+        <KeyBinding Key="Escape" Command="Close"/>
+    </Window.InputBindings>
+    <Window.Resources>
+        <Style TargetType="Border">
+            <Setter Property="CornerRadius" Value="4"/>
+        </Style>
+        <Style TargetType="ListBoxItem">
+            <Style.Triggers>
+                <Trigger Property="Selector.IsMouseOver" Value="True">
+                    <Setter Property="Opacity" Value="0.5"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Border BorderThickness="3" BorderBrush="Purple" Margin="3" Grid.Row="0" HorizontalAlignment="Stretch">
+            <TextBlock Text="{Binding Path=Question.Title,FallbackValue=Question Here}" HorizontalAlignment="Center"
+                   Margin="10" FontSize="18" Foreground="Purple" FontWeight="Bold"/>
+        </Border>
+        <ListBox Name="OptionsLB" Grid.Row="1" ItemsSource="{Binding Path=Options}" HorizontalContentAlignment="Stretch"  HorizontalAlignment="Stretch" Margin="3" VerticalAlignment="Stretch"
+                 BorderBrush="Transparent" SelectionChanged="OptionsLB_SelectionChanged">
+            <ListBox.Resources>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Transparent" />
+            </ListBox.Resources>
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="local:Option">
+                    <Border BorderThickness="2" BorderBrush="Blue" Margin="3" CornerRadius="4" Height="50">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Path=IsUserCorrect}" Value="True">
+                                        <Setter Property="Control.Background" Value="LightGreen"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Path=IsUserCorrect}" Value="False">
+                                        <Setter Property="Control.Background" Value="Red"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <TextBlock Text="{Binding Path=Option.Title,FallbackValue=(No title)}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Margin="10" FontSize="16" Foreground="Blue" FontWeight="Bold"/>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <TextBlock x:Name="ScoreTB" Text="{Binding Path=.,FallbackValue=Score: 0,StringFormat=Score: {0}}" HorizontalAlignment="Center"
+                            Margin="4" FontSize="16" Foreground="Blue" FontWeight="Bold" Grid.Row="2"/>
+    </Grid>
+</Window>
