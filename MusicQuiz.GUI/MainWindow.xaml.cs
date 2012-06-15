@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Threading;
 
 namespace MusicQuiz.GUI
 {
@@ -20,26 +21,33 @@ namespace MusicQuiz.GUI
     /// </summary>
     public partial class MainWindow : Window
     {
+        private QuizDB QuizDB;
         private QuestionVM _currentQuestion;
 
         private const int QUESTION_VALUE = 10;
         private int _score = 0;
 
+        private BackgroundWorker getQuestionWorker = new BackgroundWorker();
+        
+
         public MainWindow()
         {
-            var q = new Question()
-            {
-                Title = "Which artist?",
-                Options = new List<Option>()
-                {
-                    new Option(){Title="Pink Floyd", IsCorrect=false},
-                    new Option(){Title="The Beatles", IsCorrect=false},
-                    new Option(){Title="Nirvana", IsCorrect=true},
-                    new Option(){Title="Led Zeppelin", IsCorrect=false}
-                }
-            };
-            this.DataContext = _currentQuestion = new QuestionVM(q);
+            QuizDB = new QuizDB();
+            getQuestionWorker.DoWork += new DoWorkEventHandler(getQuestionWorker_DoWork);
+            getQuestionWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(getQuestionWorker_RunWorkerCompleted);
+            this.DataContext = _currentQuestion;
             InitializeComponent();
+        }
+
+        void getQuestionWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            var question = QuizDB.CreateNewQuestion();
+            this.Dispatcher.Invoke(new Action(()=>this._currentQuestion = new QuestionVM(question)));
+        }
+
+        void getQuestionWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            this.DataContext = _currentQuestion;
         }
 
 
@@ -59,12 +67,17 @@ namespace MusicQuiz.GUI
                 _score += QUESTION_VALUE;
             }
             _currentQuestion.IsActive = false;
-            //ChangeQuestion();
+            ChangeQuestion();
         }
 
         private void ChangeQuestion()
         {
-            throw new NotImplementedException();
+            getQuestionWorker.RunWorkerAsync();
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            getQuestionWorker.RunWorkerAsync();
         }
     }
 
@@ -80,10 +93,13 @@ namespace MusicQuiz.GUI
         public QuestionVM(Question question)
         {
             this.IsActive = true;
+            this.Question = question;
             this.Options = question.Options.Select(o => new OptionVM(o)).ToList();
         }
 
         public List<OptionVM> Options { get; set; }
+
+        public Question Question { get; set; }
 
         public bool IsActive { get; set; }
     }
