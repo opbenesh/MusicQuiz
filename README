@@ -1,0 +1,5 @@
+MusicQuiz is a music-based game.
+Gameplay consists of various questions based on the user's music library.
+
+MusicQuiz is written in C# 4.0. The GUI is written in WPF.
+MusicQuiz uses the open source tagging library TagLib.Sharp and the Bass player (via the Bass.Net API) which is free for non-commercial use.
