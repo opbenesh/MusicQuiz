@@ -82,6 +82,10 @@ namespace MusicQuiz.GUI
                 _score += QUESTION_VALUE;
                 ScoreTB.DataContext = _score;
             }
+            else
+            {
+                _currentQuestion.Options.Single(o => o.Option.IsCorrect).IsUserCorrect = true;
+            }
             _currentQuestion.IsActive = false;
             _player.Stop();
             ChangeQuestion();

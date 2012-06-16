@@ -23,7 +23,7 @@ namespace MusicQuiz.GUI
         {
             _random = new Random();
             _files = new List<TagLib.File>();
-            var musicDir = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
+            var musicDir = GetMusicDir();
             var files = Directory.GetFiles(musicDir, "*.mp3",SearchOption.AllDirectories);
             for (int i = 0; i < Constants.TRACKS_COUNT; )
             {
@@ -42,10 +42,26 @@ namespace MusicQuiz.GUI
             }
         }
 
+        private string GetMusicDir()
+        {
+            try
+            {
+                var lines = File.ReadAllLines("config.txt");
+                if (Directory.Exists(lines[0]))
+                    return lines[0];
+            }
+            catch
+            {
+                return Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
+            }
+            return Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
+        }
+
         private bool CheckFileSanity(TagLib.File file)
         {
             var tag = file.Tag;
             return tag != null
+                && file.Properties.Duration.TotalSeconds>Constants.MINIMUM_SECONDS
                 && !string.IsNullOrWhiteSpace(tag.Album)
                 && !string.IsNullOrWhiteSpace(tag.Title)
                 && tag.Performers.Length > 0
