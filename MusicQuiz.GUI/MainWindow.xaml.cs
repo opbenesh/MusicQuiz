@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Threading;
+using System.Diagnostics;
 
 namespace MusicQuiz.GUI
 {
@@ -39,19 +40,29 @@ namespace MusicQuiz.GUI
             getQuestionWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(getQuestionWorker_RunWorkerCompleted);
             this.DataContext = _currentQuestion;
             InitializeComponent();
+            ScoreTB.DataContext = _score;
         }
 
         void getQuestionWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             if (_currentQuestion != null) Thread.Sleep(700);
-            var question = QuizDB.CreateNewQuestion();
+            Question question=null;
+            while(question==null)
+                try
+                {
+                    question = QuizDB.CreateNewQuestion();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
             this.Dispatcher.Invoke(new Action(()=>this._currentQuestion = new QuestionVM(question)));
         }
 
         void getQuestionWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            this.DataContext = _currentQuestion;
             _player.Play(_currentQuestion.File);
+            this.DataContext = _currentQuestion;
         }
 
 
@@ -69,6 +80,7 @@ namespace MusicQuiz.GUI
             if ((option.IsUserCorrect = option.Option.IsCorrect).Value)
             {
                 _score += QUESTION_VALUE;
+                ScoreTB.DataContext = _score;
             }
             _currentQuestion.IsActive = false;
             _player.Stop();
@@ -96,6 +108,8 @@ namespace MusicQuiz.GUI
         public string Title { get; set; }
 
         public List<Option> Options { get; set; }
+
+        public MusicFile File { get; set; }
     }
 
     class QuestionVM
@@ -105,10 +119,10 @@ namespace MusicQuiz.GUI
             this.IsActive = true;
             this.Question = question;
             this.Options = question.Options.Select(o => new OptionVM(o)).ToList();
-            this.File = question.Options.Single(o => o.IsCorrect).File;
+            this.File = question.File;
         }
 
-        public TagLib.File File { get; set; }
+        public MusicFile File { get; set; }
 
         public List<OptionVM> Options { get; set; }
 

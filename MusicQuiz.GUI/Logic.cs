@@ -74,11 +74,15 @@ namespace MusicQuiz.GUI
             }
             var options = rawOptions.Select(kvp => new Option() { Title = kvp.Key, File=kvp.Value, IsCorrect = false }).ToList();
             var title = Constants.QuestionsBySubject[subject];
-            options[_random.Next(Constants.OPTIONS_COUNT)].IsCorrect = true;
+
+            int answer = _random.Next(Constants.OPTIONS_COUNT);
+            options[answer].IsCorrect = true;
+            var musicFile = new MusicFile(options[answer].File);
             return new Question()
                 {
                     Title=title,
-                    Options=options
+                    Options=options,
+                    File = musicFile
                 };
         }
     }

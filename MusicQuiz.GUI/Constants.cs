@@ -10,6 +10,7 @@ namespace MusicQuiz.GUI
         public const int SUBJECTS_COUNT = 3;
         public const int TRACKS_COUNT = 100;
         public const int OPTIONS_COUNT = 4;
+        public const int THRESHOLD = 500;
 
         public static readonly Dictionary<Subject, string> QuestionsBySubject = new Dictionary<Subject, string>()
         {
