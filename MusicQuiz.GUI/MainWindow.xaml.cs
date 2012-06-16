@@ -84,6 +84,11 @@ namespace MusicQuiz.GUI
         {
             getQuestionWorker.RunWorkerAsync();
         }
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            _player.Dispose();
+        }
     }
 
     public class Question

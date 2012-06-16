@@ -26,7 +26,6 @@ namespace MusicQuiz.GUI
             _currentStream = Bass.BASS_StreamCreateFile(file.Name, 0, 0, BASSFlag.BASS_DEFAULT);
             if (_currentStream == 0)
                 throw new ApplicationException(string.Format("Could not play file {0}.", file.Name));
-            Bass
             long position = _random.NextLong(Bass.BASS_ChannelGetLength(_currentStream)*3/4);
             Bass.BASS_ChannelSetPosition(_currentStream, position);
             Bass.BASS_ChannelPlay(_currentStream, false);
