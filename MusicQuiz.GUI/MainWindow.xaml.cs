@@ -22,6 +22,7 @@ namespace MusicQuiz.GUI
     public partial class MainWindow : Window
     {
         private QuizDB QuizDB;
+        private MusicPlayer _player;
         private QuestionVM _currentQuestion;
 
         private const int QUESTION_VALUE = 10;
@@ -32,6 +33,7 @@ namespace MusicQuiz.GUI
 
         public MainWindow()
         {
+            _player = new MusicPlayer();
             QuizDB = new QuizDB();
             getQuestionWorker.DoWork += new DoWorkEventHandler(getQuestionWorker_DoWork);
             getQuestionWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(getQuestionWorker_RunWorkerCompleted);
@@ -41,6 +43,7 @@ namespace MusicQuiz.GUI
 
         void getQuestionWorker_DoWork(object sender, DoWorkEventArgs e)
         {
+            if (_currentQuestion != null) Thread.Sleep(700);
             var question = QuizDB.CreateNewQuestion();
             this.Dispatcher.Invoke(new Action(()=>this._currentQuestion = new QuestionVM(question)));
         }
@@ -48,6 +51,7 @@ namespace MusicQuiz.GUI
         void getQuestionWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             this.DataContext = _currentQuestion;
+            _player.Play(_currentQuestion.File);
         }
 
 
@@ -67,6 +71,7 @@ namespace MusicQuiz.GUI
                 _score += QUESTION_VALUE;
             }
             _currentQuestion.IsActive = false;
+            _player.Stop();
             ChangeQuestion();
         }
 
@@ -95,7 +100,10 @@ namespace MusicQuiz.GUI
             this.IsActive = true;
             this.Question = question;
             this.Options = question.Options.Select(o => new OptionVM(o)).ToList();
+            this.File = question.Options.Single(o => o.IsCorrect).File;
         }
+
+        public TagLib.File File { get; set; }
 
         public List<OptionVM> Options { get; set; }
 
@@ -106,6 +114,8 @@ namespace MusicQuiz.GUI
 
     public class Option
     {
+        public TagLib.File File { get; set; }
+
         public string Title { get; set; }
 
         public bool IsCorrect { get; set; }

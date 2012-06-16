@@ -27,27 +27,52 @@ namespace MusicQuiz.GUI
             var files = Directory.GetFiles(musicDir, "*.mp3",SearchOption.AllDirectories);
             for (int i = 0; i < Constants.TRACKS_COUNT; )
             {
+                TagLib.File file;
                 try
                 {
                     //TODO: HashSet                    
-                    _files.Add(TagLib.File.Create(files[_random.Next(files.Length)]));
-                    i++;
+                    file = TagLib.File.Create(files[_random.Next(files.Length)]);
                 }
                 catch { continue;}
+                if (!CheckFileSanity(file))
+                    continue;
+                _files.Add(file);
+                i++;
                 Trace.WriteLine(string.Format("Scan progress: {0:p0} done.",(float)i/Constants.TRACKS_COUNT));
             }
         }
 
+        private bool CheckFileSanity(TagLib.File file)
+        {
+            var tag = file.Tag;
+            return tag != null
+                && !string.IsNullOrWhiteSpace(tag.Album)
+                && !string.IsNullOrWhiteSpace(tag.Title)
+                && tag.Performers.Length > 0
+                && !string.IsNullOrWhiteSpace(tag.Performers[0]);
+        }
+
+        private string Reencode(string source)
+        {
+            var ascii = Encoding.GetEncoding(1252);
+            var hebrew = Encoding.GetEncoding(1255);
+            var rawBytes = ascii.GetBytes(source);
+            return hebrew.GetString(rawBytes);
+        }
+
         public Question CreateNewQuestion()
         {
-            var files = new List<TagLib.File>();
-            for (int i = 0; i < Constants.OPTIONS_COUNT; i++)
-            {
-                files.Add(_files[_random.Next(_files.Count)]);
-            }
             var subject = (Subject)_random.Next(Constants.SUBJECTS_COUNT);
-            var rawOptions = files.Select(f=>f.Tag).Select(Constants.ProjectionBySubject[subject]);
-            var options = rawOptions.Select(s => new Option() { Title = s, IsCorrect = false }).ToList();
+            Dictionary<string, TagLib.File> rawOptions = new Dictionary<string, TagLib.File>();
+            while (rawOptions.Count < Constants.OPTIONS_COUNT)
+            {
+                var file = _files[_random.Next(_files.Count)];
+                var option = Reencode(Constants.ProjectionBySubject[subject](file.Tag));
+                if (rawOptions.ContainsKey(option))
+                    continue;
+                rawOptions[option] = file;
+            }
+            var options = rawOptions.Select(kvp => new Option() { Title = kvp.Key, File=kvp.Value, IsCorrect = false }).ToList();
             var title = Constants.QuestionsBySubject[subject];
             options[_random.Next(Constants.OPTIONS_COUNT)].IsCorrect = true;
             return new Question()
